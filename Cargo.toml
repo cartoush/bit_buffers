@@ -1,0 +1,10 @@
+[package]
+name = "bit_io"
+version = "0.1.0"
+authors = "Jacob Hiance"
+edition = "2021"
+description = "A library for reading and writing individual bits to and from files."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
