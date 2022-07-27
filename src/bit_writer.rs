@@ -18,7 +18,7 @@ impl BitWriter {
     /// 
     /// # Examples
     /// ```
-    /// use bit_io::BitWriter;
+    /// use bit_buffers::BitWriter;
     /// let _bit_writer = BitWriter::new();
     /// ```
     pub fn new() -> BitWriter {
@@ -43,7 +43,7 @@ impl BitWriter {
     /// 
     /// # Examples
     /// ```
-    /// use bit_io::BitWriter;
+    /// use bit_buffers::BitWriter;
     /// let mut bit_writer = BitWriter::new();
     /// bit_writer.write_bit(1);
     /// bit_writer.write_bit(0);
@@ -65,7 +65,7 @@ impl BitWriter {
     /// 
     /// # Examples
     /// ```
-    /// use bit_io::BitWriter;
+    /// use bit_buffers::BitWriter;
     /// let mut bit_writer = BitWriter::new();
     /// bit_writer.write_bit(1);
     /// bit_writer.write_bit(0);

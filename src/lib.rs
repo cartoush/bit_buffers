@@ -1,6 +1,6 @@
-//! # Bit IO
+//! # Bit Buffers
 //! 
-//! `bit_io` is a collection of utilities designed to make it easy
+//! `bit_buffers` is a collection of utilities designed to make it easy
 //! to perform IO at the bit level, i.e. writing and reading individual 
 //! bits to and from a file or buffer
 

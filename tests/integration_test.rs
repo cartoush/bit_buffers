@@ -1,5 +1,5 @@
-use bit_io::BitReader;
-use bit_io::BitWriter;
+use bit_buffers::BitReader;
+use bit_buffers::BitWriter;
 
 #[test]
 fn write_and_read() {

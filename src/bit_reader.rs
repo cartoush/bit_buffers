@@ -19,7 +19,7 @@ impl BitReader {
     /// 
     /// # Examples
     /// ```
-    /// use bit_io::BitReader;
+    /// use bit_buffers::BitReader;
     /// let _bit_reader = BitReader::new();
     /// ```
     pub fn new() -> BitReader {
@@ -44,7 +44,7 @@ impl BitReader {
     ///
     /// # Examples
     /// ```
-    /// use bit_io::BitReader;
+    /// use bit_buffers::BitReader;
     /// let mut bit_reader = BitReader::new();
     /// bit_reader.load_from_file("my_bit_file.bit");
     /// ```
@@ -61,7 +61,7 @@ impl BitReader {
     /// 
     /// # Examples
     /// ```
-    /// use bit_io::BitReader;
+    /// use bit_buffers::BitReader;
     /// let mut bit_reader = BitReader::new();
     /// bit_reader.load_from_file("my_bit_file.bit");
     /// let bit_option = bit_reader.read_bit();
