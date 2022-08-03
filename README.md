@@ -3,6 +3,7 @@
 The `bit_buffers` library allows for the reading and writing of individual bits to and from files.
 
 [![doc tests](https://img.shields.io/badge/doc%20tests-passing-green.svg)](https://crates.io/crates/bit_buffers)
+[![integration tests](https://img.shields.io/badge/integration%20tests-passing-green.svg)](https://crates.io/crates/bit_buffers)
 
 This library offers prototype versions of a bit reading entity and a bit writing entity that both keep track of how many bits are contained within them, and at which bit they are currently using.
 
