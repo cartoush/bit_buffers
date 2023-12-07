@@ -4,7 +4,7 @@
 //! to perform IO at the bit level, i.e. writing and reading individual 
 //! bits to and from a file or buffer
 
-mod bit_buffer;
+pub mod bit_buffer;
 pub mod bit_reader;
 pub mod bit_writer;
 
