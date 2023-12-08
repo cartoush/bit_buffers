@@ -52,6 +52,12 @@ impl BitWriter {
         self.buffer.push_bit(bit);
     } // write_bit
 
+    pub fn write_bits(&mut self, bits: u128, len: u8) {
+        self.position += len as u128;
+
+        self.buffer.push_bits(bits, len);
+    }
+
     pub fn get_buffer(&mut self) -> BitBuffer {
         self.buffer.clone()
     }

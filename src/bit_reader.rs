@@ -56,4 +56,16 @@ impl BitReader {
         // Return the retrieved bit
         bit_option
     } // read_bit
+
+    pub fn read_bits(&mut self, len: u8) -> Option<u128> {
+        if self.position >= self.buffer.get_count() {
+            return None;
+        }
+
+        let bits = self.buffer.get_bits(self.position, len);
+        if bits != None {
+            self.position += len as u128;
+        }
+        bits
+    }
 }

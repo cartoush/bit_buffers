@@ -1,5 +1,4 @@
-use std::fs;
-use std::io;
+use std::cmp::min;
 
 // We need to know how many bits are in each u8 (byte) so we can index into the
 // byte buffer and work on the appropriate bit inside the desired byte
@@ -28,26 +27,6 @@ impl BitBuffer {
         }
     } // new
 
-    // load_from_file
-    //
-    // Load the bits from the specified file into this buffer
-    pub fn load_from_file(&mut self, file_name: &str) -> io::Result<()> {
-        // This buffer may be used to read from multiple files
-        self.flush();
-
-        // Read the contents of the file into into this buffer's vector
-        let mut file_buffer = fs::read(file_name)?;
-        self.buffer = file_buffer.split_off(16);
-
-        // Extract the bit count from the first 16 bytes of the file vector
-        let mut count_buffer: [u8; 16] = [0; 16];
-        count_buffer[..16].copy_from_slice(&file_buffer[..16]);
-
-        self.count = u128::from_ne_bytes(count_buffer);
-
-        Ok(())
-    } // load_from_file
-
     // flush
     //
     // Clears out the contents of the vector without affecting capacity, and
@@ -67,13 +46,61 @@ impl BitBuffer {
     // Returns the bit at the indicated position
     pub fn get_bit(&self, index: u128) -> u8 {
         // Extract the bit at the current position within the buffer
-        let vector_index = (index / BITS_PER_BYTE) as usize;
+        let byte_index = (index / BITS_PER_BYTE) as usize;
         let bit_index = index % BITS_PER_BYTE;
-        let bit = (self.buffer[vector_index] & (1 << bit_index)) as u8;
+        let bit = (self.buffer[byte_index] & (1 << (BITS_PER_BYTE - 1 - bit_index))) as u8;
 
         // Return the bit
-        bit >> bit_index
+        bit >> (BITS_PER_BYTE - 1 - bit_index)
     } // get_bit
+
+    pub fn get_bits(&self, index: u128, len: u8) -> Option<u128> {
+        let mut byte_index = (index / BITS_PER_BYTE) as usize;
+        let bit_index: u8 = (index % BITS_PER_BYTE) as u8;
+        let mut bits: u128 = 0;
+        let mut read: u8 = 0;
+
+        if len > 128 {
+            return None;
+        } else if len == 1 {
+            return Some(self.get_bit(index).into());
+        }
+
+        if bit_index != 0 {
+            let mut mask = 1;
+            read = min(BITS_PER_BYTE as u8 - bit_index, len.into());
+            for _ in 1..read {
+                mask = mask << 1;
+                mask |= 1;
+            }
+            mask = mask << (BITS_PER_BYTE as u8 - bit_index - read);
+            bits = (self.buffer[byte_index] & mask).into();
+            byte_index += 1;
+        }
+
+        let mut len_left_bits: u8 = len - read;
+        if len_left_bits == 0 {
+            return Some(bits);
+        }
+        let len_left_bytes: u8 = len_left_bits / BITS_PER_BYTE as u8;
+        len_left_bits = len_left_bits % BITS_PER_BYTE as u8;
+        for _ in 0..len_left_bytes {
+            bits = bits << BITS_PER_BYTE;
+            bits |= self.buffer[byte_index] as u128;
+            byte_index += 1;
+        }
+        if len_left_bits != 0 {
+            let mut mask = 1;
+            for _ in 1..len_left_bits {
+                mask = mask << 1;
+                mask |= 1;
+            }
+            mask = mask << BITS_PER_BYTE as u8 - len_left_bits;
+            bits = bits << len_left_bits;
+            bits |= ((self.buffer[byte_index] & mask) >> (BITS_PER_BYTE as u8 - len_left_bits)) as u128;
+        }
+        Some(bits)
+    }
 
     // push_bit
     //
@@ -88,7 +115,7 @@ impl BitBuffer {
         // We need to set a bit in the last byte of the vector if the given
         // bit is 1; otherwise, we just need to advance the count
         if bit == 1 {
-            let mask = (1 << bit_index) as u8;
+            let mask = (1 << (BITS_PER_BYTE - 1 - bit_index)) as u8;
             let byte_index = self.buffer.len() - 1;
             self.buffer[byte_index] |= mask;
         }
@@ -96,6 +123,60 @@ impl BitBuffer {
         // Make sure we increment the number of bits written
         self.count += 1;
     } // push_bit
+
+    pub fn push_bits(&mut self, bits: u128, len: u8) {
+        let mut written = 0;
+        if len > 128 {
+            return;
+        } else if len == 1 {
+            self.push_bit(bits as u8);
+        }
+
+        let bit_index: u8 = (self.count % BITS_PER_BYTE) as u8;
+        if bit_index == 0 {
+            self.buffer.push(0);
+        }
+        let mut byte_index = self.buffer.len() - 1;
+
+        if len > BITS_PER_BYTE as u8 - bit_index {
+            for _ in 0..((len + bit_index) / BITS_PER_BYTE as u8) {
+                self.buffer.push(0);
+            }
+        }
+
+        if bit_index != 0 {
+            let mut mask: u8 = 1;
+            let write_len: u8 = min(BITS_PER_BYTE as u8 - bit_index, len);
+            for _ in 1..write_len {
+                mask = mask << 1;
+                mask |= 1;
+            }
+            mask = mask << (BITS_PER_BYTE as u8 - bit_index - write_len);
+            let byte_value: u8 = (bits >> (len - write_len)) as u8;
+
+            self.buffer[byte_index] |= byte_value & mask;
+            written += write_len;
+            byte_index += 1;
+        }
+
+        let mut len_left_bits = len - written;
+        if len_left_bits == 0 {
+            self.count += len as u128;
+            return;
+        }
+        let len_left_bytes = len_left_bits / BITS_PER_BYTE as u8;
+        len_left_bits = len_left_bits % BITS_PER_BYTE as u8;
+        for i in (0..len_left_bytes).rev() {
+            let byte_value: u8 = (bits >> (i * BITS_PER_BYTE as u8 + (len % BITS_PER_BYTE as u8))) as u8;
+            self.buffer[byte_index] = byte_value;
+            byte_index += 1;
+        }
+        self.count += len as u128;
+        if len_left_bits == 0 {
+            return;
+        }
+        self.buffer[byte_index] = ((bits) << (BITS_PER_BYTE as u8 - len_left_bits)) as u8;
+    }
 
     // get_count
     //
