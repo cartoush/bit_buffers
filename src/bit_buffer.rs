@@ -55,10 +55,6 @@ impl BitBuffer {
     } // get_bit
 
     pub fn get_bits(&self, index: u128, len: u8) -> Option<u128> {
-        let mut byte_index = (index / BITS_PER_BYTE) as usize;
-        let bit_index: u8 = (index % BITS_PER_BYTE) as u8;
-        let mut bits: u128 = 0;
-        let mut read: u8 = 0;
 
         if len > 128 {
             return None;
@@ -66,6 +62,10 @@ impl BitBuffer {
             return Some(self.get_bit(index).into());
         }
 
+        let bit_index: u8 = (index % BITS_PER_BYTE) as u8;
+        let mut byte_index = (index / BITS_PER_BYTE) as usize;
+        let mut read: u8 = 0;
+        let mut bits: u128 = 0;
         if bit_index != 0 {
             let mut mask = 1;
             read = min(BITS_PER_BYTE as u8 - bit_index, len.into());
@@ -74,6 +74,7 @@ impl BitBuffer {
                 mask |= 1;
             }
             mask = mask << (BITS_PER_BYTE as u8 - bit_index - read);
+
             bits = (self.buffer[byte_index] & mask).into();
             byte_index += 1;
         }
@@ -82,13 +83,15 @@ impl BitBuffer {
         if len_left_bits == 0 {
             return Some(bits);
         }
+
         let len_left_bytes: u8 = len_left_bits / BITS_PER_BYTE as u8;
-        len_left_bits = len_left_bits % BITS_PER_BYTE as u8;
         for _ in 0..len_left_bytes {
             bits = bits << BITS_PER_BYTE;
             bits |= self.buffer[byte_index] as u128;
             byte_index += 1;
         }
+
+        len_left_bits = len_left_bits % BITS_PER_BYTE as u8;
         if len_left_bits != 0 {
             let mut mask = 1;
             for _ in 1..len_left_bits {
@@ -125,7 +128,6 @@ impl BitBuffer {
     } // push_bit
 
     pub fn push_bits(&mut self, bits: u128, len: u8) {
-        let mut written = 0;
         if len > 128 {
             return;
         } else if len == 1 {
@@ -136,26 +138,26 @@ impl BitBuffer {
         if bit_index == 0 {
             self.buffer.push(0);
         }
-        let mut byte_index = self.buffer.len() - 1;
 
+        let mut byte_index = self.buffer.len() - 1;
         if len > BITS_PER_BYTE as u8 - bit_index {
             for _ in 0..((len + bit_index) / BITS_PER_BYTE as u8) {
                 self.buffer.push(0);
             }
         }
 
+        let mut written: u8 = 0;
         if bit_index != 0 {
             let mut mask: u8 = 1;
-            let write_len: u8 = min(BITS_PER_BYTE as u8 - bit_index, len);
-            for _ in 1..write_len {
+            written = min(BITS_PER_BYTE as u8 - bit_index, len);
+            for _ in 1..written {
                 mask = mask << 1;
                 mask |= 1;
             }
-            mask = mask << (BITS_PER_BYTE as u8 - bit_index - write_len);
-            let byte_value: u8 = (bits >> (len - write_len)) as u8;
+            mask = mask << (BITS_PER_BYTE as u8 - bit_index - written);
 
+            let byte_value: u8 = (bits >> (len - written)) as u8;
             self.buffer[byte_index] |= byte_value & mask;
-            written += write_len;
             byte_index += 1;
         }
 
@@ -164,6 +166,7 @@ impl BitBuffer {
             self.count += len as u128;
             return;
         }
+
         let len_left_bytes = len_left_bits / BITS_PER_BYTE as u8;
         len_left_bits = len_left_bits % BITS_PER_BYTE as u8;
         for i in (0..len_left_bytes).rev() {
@@ -171,6 +174,7 @@ impl BitBuffer {
             self.buffer[byte_index] = byte_value;
             byte_index += 1;
         }
+
         self.count += len as u128;
         if len_left_bits == 0 {
             return;
