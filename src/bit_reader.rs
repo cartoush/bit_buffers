@@ -57,6 +57,19 @@ impl BitReader {
         bit_option
     } // read_bit
 
+    /// Reads the current bit being referenced by this BitReader.
+    ///
+    /// # Examples
+    /// ```
+    /// use bit_buffers::bit_buffer::BitBuffer;
+    /// use bit_buffers::BitReader;
+    /// let mut bit_reader = BitReader::new(BitBuffer::new(None, None));
+    /// let read_len = 16;
+    /// let bits_option = bit_reader.read_bits(read_len);
+    /// if let Some(bits) = bits_option {
+    ///     println!("Read {} bits from bit_reader, value {}", read_len, bits);
+    /// }
+    /// ```
     pub fn read_bits(&mut self, len: u8) -> Option<u128> {
         if self.position >= self.buffer.get_count() {
             return None;

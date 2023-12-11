@@ -4,12 +4,12 @@ use super::bit_buffer::BitBuffer;
 /// to it from the user.
 #[derive(Default)]
 pub struct BitWriter {
-    // The 'position' field represents which bit in the buffer is currently
-    // being indexed
+    /// The 'position' field represents which bit in the buffer is currently
+    /// being indexed
     position: u128,
 
-    // The 'buffer' holds the actual bit buffer (represented by a BitBuffer)
-    // that is being read from
+    /// The 'buffer' holds the actual bit buffer (represented by a BitBuffer)
+    /// that is being read from
     buffer: BitBuffer,
 }
 
@@ -52,12 +52,35 @@ impl BitWriter {
         self.buffer.push_bit(bit);
     } // write_bit
 
+    /// Writes the given value in the bit buffer following the previous written value.
+    ///
+    /// # Arguments
+    ///
+    /// * `bits` (u128) - The bits to write to this BitWriter
+    /// * `len` (u8) - The number of bits to write
+    ///
+    /// # Examples
+    /// ```
+    /// use bit_buffers::BitWriter;
+    /// let mut bit_writer = BitWriter::new();
+    /// bit_writer.write_bits(0x42, 16);
+    /// ```
     pub fn write_bits(&mut self, bits: u128, len: u8) {
         self.position += len as u128;
 
         self.buffer.push_bits(bits, len);
     }
 
+    /// Get the underlying bit buffer
+    ///
+    /// # Examples
+    /// ```
+    /// use bit_buffers::BitWriter;
+    /// use bit_buffers::bit_buffer::BitBuffer;
+    /// let mut bit_writer = BitWriter::new();
+    /// bit_writer.write_bits(0x42, 16);
+    /// let bit_buffer = bit_writer.get_buffer();
+    /// ```
     pub fn get_buffer(&mut self) -> BitBuffer {
         self.buffer.clone()
     }
