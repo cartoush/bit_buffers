@@ -1,5 +1,3 @@
-use bit_buffers::bit_reader;
-use bit_buffers::bit_writer;
 use bit_buffers::BitReader;
 use bit_buffers::BitWriter;
 

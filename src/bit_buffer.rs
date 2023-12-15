@@ -9,7 +9,7 @@ const BITS_PER_BYTE: u128 = 8;
 /// A BitBuffer stores a vector of bytes (u8) that can be transferred to and
 /// from files, and can be queried. It tracks the total number of bits written
 /// to it, as well as the current position (in terms of bits)
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct BitBuffer {
     count: u128,
     buffer: Vec<u8>,
