@@ -1,5 +1,6 @@
 use bit_buffers::BitReader;
 use bit_buffers::BitWriter;
+use bit_buffers::bit_buffer::BitBuffer;
 
 #[test]
 fn write_and_read() {
@@ -140,4 +141,14 @@ fn write_read_udp_packet() {
         println!("field: {}, size: {} expected: {:#x}, read: {:#x}", field.2, field.1, field.0, bits);
         assert_eq!(bits, field.0);
     }
+}
+
+#[test]
+fn bitbuffer_equality() {
+    let left = BitBuffer::new(Some(16), Some(vec![0b10101010, 0b10101010]));
+    let right_equal = BitBuffer::new(Some(16), Some(vec![0b10101010, 0b10101010]));
+    let right_not_equal = BitBuffer::new(Some(16), Some(vec![0b10101010, 0b10101011]));
+
+    assert_eq!(left, right_equal);
+    assert_ne!(left, right_not_equal);
 }
