@@ -50,7 +50,7 @@ impl BitBuffer {
 
     /// Returns up to 128 bits from the indicated position
     pub fn get_bits(&self, index: u128, len: u8) -> Option<u128> {
-        if len > 128 || self.count == 0 {
+        if len > 128 || self.count == 0 || self.count - index < len as u128 {
             return None;
         } else if len == 1 {
             return Some(self.get_bit(index).into());
